@@ -4,7 +4,7 @@ import { ReclaimRecord } from '../types';
 import { PublicKey, Keypair } from '@solana/web3.js';
 import * as bs58 from 'bs58';
 import { closeTokenAccount, getConnection } from '../utils/solana';
-import { sendTelegramMessage } from './telegram';
+import { sendTelegramMessage, sendReclaimNotification } from './telegram';
 import config from '../config';
 import path from 'path';
 
@@ -53,21 +53,39 @@ export async function reclaimAccount(address: string) {
     if (result.success) {
       logger.success(`Successfully reclaimed ${result.lamportsRecovered} lamports from ${address}`);
       
+      const trackedAccounts = readJSON<Record<string, any>>(TRACKED_PATH);
+      const accountData = trackedAccounts?.[address];
+      
       const record: ReclaimRecord = {
         address,
         reclaimedAt: new Date().toISOString(),
         lamportsRecovered: result.lamportsRecovered,
         note: result.message,
-      };
+        tokenMint: accountData?.metadata?.mint,
+        accountOwner: accountData?.metadata?.owner,
+        category: accountData?.category,
+      }; 
       
       // Save to history
       const existing = (readJSON(HISTORY_PATH) as ReclaimRecord[]) || [];
       existing.push(record);
       writeJSON(HISTORY_PATH, existing);
       
+      // Update tracked accounts status
+      if (trackedAccounts && accountData) {
+        accountData.metadata = {
+          ...accountData.metadata,
+          status: 'reclaimed',
+          reclaimedAt: new Date().toISOString(),
+          lamportsRecovered: result.lamportsRecovered,
+        };
+        writeJSON(TRACKED_PATH, trackedAccounts);
+        logger.info(`Updated account status to 'reclaimed' in tracked accounts`);
+      }
+      
       // Send notification
       try {
-        await sendTelegramMessage(`✅ Reclaimed ${result.lamportsRecovered} lamports from ${address}`);
+        await sendReclaimNotification(address, result.lamportsRecovered || 0, result.signature);
       } catch (e) {
         logger.warn('telegram notify failed');
       }
@@ -102,18 +120,30 @@ async function main() {
     
     logger.info(`Found ${Object.keys(trackedAccounts).length} tracked accounts`);
     
-    // For testing, reclaim the first account
+    // Find accounts that are eligible for reclaim (token balance = 0)
     const addresses = Object.keys(trackedAccounts);
-    if (addresses.length > 0) {
-      const targetAddress = addresses[0];
-      logger.info(`Testing reclaim for account: ${targetAddress}`);
-      
-      if (!dryRun) {
-        const result = await reclaimAccount(targetAddress);
-        logger.success(`Reclaim completed: ${JSON.stringify(result)}`);
-      } else {
-        logger.info(`DRY RUN: Would reclaim account ${targetAddress}`);
-      }
+    const eligibleAccounts = addresses.filter((addr: string) => {
+      const account = trackedAccounts[addr];
+      const tokenBalance = account?.metadata?.tokenBalance || 0;
+      const status = account?.metadata?.status;
+      return tokenBalance === 0 && status !== 'reclaimed' && status !== 'closed';
+    });
+    
+    if (eligibleAccounts.length === 0) {
+      logger.info('No accounts with zero token balance available for reclaim test');
+      logger.info('Try running the monitor first to find eligible accounts');
+      return;
+    }
+    
+    // For testing, reclaim the first eligible account
+    const targetAddress = eligibleAccounts[0];
+    logger.info(`Testing reclaim for eligible account: ${targetAddress}`);
+    
+    if (!dryRun) {
+      const result = await reclaimAccount(targetAddress);
+      logger.success(`Reclaim completed: ${JSON.stringify(result)}`);
+    } else {
+      logger.info(`DRY RUN: Would reclaim account ${targetAddress}`);
     }
     
     logger.section('RECLAIM TEST COMPLETE');

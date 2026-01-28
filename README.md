@@ -1,185 +1,187 @@
-# 🏆 Kora Rent Reclaim Bot
+# 🤖 Kora Rent Reclaim Bot
 
-**Automated rent recovery system for Kora operators on Solana - providing clarity and reclaiming lost SOL**
+**Automated rent recovery for Kora operators on Solana**
 
-## 🎯 Bounty Solution Overview
+[![Built with TypeScript](https://img.shields.io/badge/Built%20with-TypeScript-blue)](https://www.typescriptlang.org/)
+[![Solana](https://img.shields.io/badge/Solana-Network-purple)](https://solana.com)
 
-This bot solves the critical problem identified in the Kora bounty: **rent SOL locked in sponsored accounts**. When Kora nodes sponsor account creation, SOL gets locked as rent deposits. Over time, many accounts become inactive or empty, but the rent remains locked.
+---
 
-Our solution provides both **automated rent reclamation** and **complete visibility** into where rent goes, why some can be recovered, and how to minimize future losses.
+## What It Does
 
-## ✨ Key Features
+- **Finds** Kora-sponsored token accounts
+- **Recovers** rent from empty operator-owned accounts  
+- **Monitors** all accounts for cost analysis
+- **Notifies** via Telegram when rent is reclaimed
 
-### 🔍 **Smart Discovery & Monitoring**
-- **Intelligent Scanner**: Finds operator-owned token accounts from transaction history
-- **Real-time Monitoring**: Tracks account balances and detects eligibility for cleanup
-- **Ownership Filtering**: Only tracks accounts where Kora operator has reclaim authority
+---
 
-### 💰 **Automated Rent Reclamation**
-- **Safe Recovery**: Closes empty accounts and returns SOL to treasury
-- **Dry-run Mode**: Test before executing actual transactions
-- **Batch Processing**: Efficiently handles multiple accounts
+## Quick Start
 
-### 📊 **Enhanced Reporting & Analytics**
-- **Rent Analysis Dashboard**: Complete visibility into rent allocation
-- **Account Classification**: Clear distinction between reclaimable vs non-reclaimable accounts
-- **Operational Insights**: Metrics for optimization and cost management
-
-### 🛡️ **Production-Ready Safety**
-- **Extensive Logging**: Full audit trail of all actions
-- **Error Handling**: Graceful failure recovery
-- **Configurable Thresholds**: Customizable minimum rent amounts
-
-## 🏗️ Architecture
-
-```
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   Scanner       │───▶│   Database       │───▶│   Monitor       │
-│ (Discovery)    │    │ (JSON Storage)  │    │ (Eligibility)   │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
-                                                        │
-┌─────────────────┐    ┌──────────────────┐            ▼
-│   Reporter      │◀───│   Reclaimer      │    ┌─────────────────┐
-│ (Analytics)    │    │ (Recovery)       │    │   Treasury      │
-└─────────────────┘    └──────────────────┘    │ (SOL Recovery)  │
-                                                └─────────────────┘
-```
-
-## 📈 What Makes This Solution Special
-
-### 🎯 **Technical Excellence**
-- **Correct Ownership Logic**: Only tracks accounts where Kora operator has authority
-- **Solana Best Practices**: Uses proper transaction handling and error management
-- **TypeScript**: Full type safety and maintainability
-
-### 💡 **Business Intelligence**
-- **Clarity First**: Explains WHY some rent can't be recovered (user-owned ATAs)
-- **Actionable Insights**: Shows operators exactly where their SOL goes
-- **Educational Value**: Helps operators understand rent mechanics
-
-### 🚀 **Production Ready**
-- **Zero Downtime**: Continues monitoring even if individual operations fail
-- **Scalable**: Handles thousands of accounts efficiently
-- **Observable**: Comprehensive logging and metrics
-
-## 🚀 Quick Start
-
-### Prerequisites
-- Node.js 18+
-- Solana CLI (for local testing)
-- Kora operator access
-
-### Installation
 ```bash
-git clone <repository>
+git clone <repo>
 cd rent-reclaim-bot
 npm install
-```
-
-### Configuration
-```bash
 cp .env.example .env
 # Edit .env with your Kora operator details
 ```
 
-### Testing
+### Basic Usage
 ```bash
-# Test individual components
-npm run test:scanner    # Test account discovery
-npm run test:monitor    # Test balance monitoring
-npm run test:reclaim    # Test rent recovery (dry-run)
-npm run test:reporting  # Test enhanced analytics
-
-# Full workflow test
-npm run test:scanner    # Discover accounts
+npm run test:scanner    # Find accounts
 npm run test:monitor    # Check eligibility
-npm run test:reporting  # View analytics
+npm run test:reclaim    # Recover rent (dry-run by default)
+npm run test:report     # Generate report
 ```
 
-## 📊 Reporting Dashboard
-
-The bot provides comprehensive analytics:
+## 📁 Architecture
 
 ```
-============================================================
-  KORA RENT ANALYSIS REPORT
-============================================================
-
-TOTAL RENT TRACKING:
-├── Operator-Owned Accounts: 1.52 SOL (tracking these ✅)
-│   ├── Active: 1.02 SOL (50 accounts with tokens)
-│   ├── Eligible: 0.30 SOL (15 accounts, 0 balance)
-│   └── Reclaimed: 0.20 SOL (10 accounts closed)
-│
-└── Limitation: User-owned ATAs not trackable
-    └── Reason: Created via transferTransaction, owned by users
-    └── Impact: Cannot reclaim rent from user accounts
-    └── Note: This is expected Solana behavior
-
-RECLAIM POTENTIAL:
-├── Ready Now: 0.30 SOL (15 empty accounts)
-├── Monitoring: 1.02 SOL (50 active accounts)
-└── Recovered: 0.20 SOL (10 accounts)
-
-OPERATOR INSIGHTS:
-├── Average rent per account: 0.002039 SOL
-├── Accounts created per day: ~25
-├── Potential monthly savings: ~1.53 SOL
-└── ROI: Automated monitoring saves manual tracking time
+┌─────────────────┐    ┌──────────────┐    ┌─────────────┐
+│   Scanner       │───▶│   Database   │───▶│   Monitor   │
+│ Finds accounts  │    │ JSON storage │    │ Check status│
+└─────────────────┘    └──────────────┘    └─────────────┘
+                                                    │
+┌─────────────────┐    ┌──────────────┐            ▼
+│   Reporter      │◀───│  Reclaimer   │    ┌─────────────┐
+│ Analytics       │    │ Close empty  │    │  Treasury   │
+└─────────────────┘    └──────────────┘    │ SOL returns │
+                                            └─────────────┘
+                                                    │
+                                            ┌─────────────┐
+                                            │ Telegram    │
+                                            │ Alerts      │
+                                            └─────────────┘
 ```
 
-## 🔧 Account Classification
+### Core Components
 
-### ✅ **Operator-Owned Accounts (Reclaimable)**
-- **Owner**: Kora operator address
-- **Authority**: Can close and reclaim rent
-- **When**: Token balance = 0 AND lamports ≥ minimum threshold
-- **Example**: `AhJ6y2fcGv6vMW8i34vq9ykaNiW26tfeH8dEaMGFXj4i`
+- **Scanner** - Discovers accounts from Kora transaction history
+- **Monitor** - Checks balances and eligibility status
+- **Reclaimer** - Closes eligible accounts and recovers rent
+- **Reporter** - Generates comprehensive analytics
+- **Telegram** - Real-time notifications and commands
 
-### ❌ **User-Owned Accounts (Non-Reclaimable)**
-- **Owner**: Individual user addresses
-- **Authority**: Only users can close these accounts
-- **Why**: Created via `transferTransaction`, Kora pays rent but user owns
-- **Impact**: Rent permanently locked (Solana security model)
+---
 
-## 💡 Understanding the Rent Problem
-
-### Why Rent Gets Locked
-1. **Account Creation**: Every token account costs ~0.002 SOL in rent
-2. **Kora Sponsorship**: Kora pays this rent for user convenience
-3. **Ownership Model**: Account owner gets close authority, not fee payer
-4. **Permanent Lock**: User-owned accounts can't be closed by Kora
-
-### What We Can Recover
-- **Operator Accounts**: Full rent recovery when empty
-- **System Accounts**: Internal processing accounts
-- **Fee Accounts**: Collection and distribution accounts
-
-### What We Cannot Recover
-- **User ATAs**: Created for users, owned by users
-- **Expected Behavior**: This is Solana's security design
-
-## 🛠️ Production Deployment
-
-### Environment Configuration
+### Run the whole Workflow at once
 ```bash
-# Required
-SOLANA_RPC_URL=<rpc-url(local validator or rpc provider)>
-KORA_OPERATOR_ADDRESS=<operator-public-key>
-KORA_OPERATOR_KEYPAIR=<operator-keypair-base58>
-
-# Optional
-KORA_TREASURY_ADDRESS=<treasury-address>
-DRY_RUN=true  # Set to false for live reclaiming
-LOG_LEVEL=info
-TELEGRAM_ENABLED=false
-```
-
-### Monitoring Setup
-```bash
-# Run continuous monitoring
+# scans, monitors, reclaims (if dry=true), and reports
 npm start
-
-# Or use cron for scheduled runs
-0 */6 * * * cd /path/to/bot && npm run test:monitor
 ```
+
+## 🧠 Understanding the Bot's Intelligence
+
+### Account Classification Logic
+
+```typescript
+// Operator-Owned (Reclaimable)
+if (account.owner === KORA_OPERATOR_ADDRESS) {
+  category = 'operator-owned'
+  reclaimable = true
+  // Bot can close these when empty
+}
+
+// User-Owned (Non-Reclaimable)
+else {
+  category = 'user-owned'
+  reclaimable = false
+  // Only tracking for cost analysis
+}
+```
+
+### Eligibility Criteria
+
+An account is eligible for reclamation when:
+1. ✅ Owned by Kora operator
+2. ✅ Token balance = 0
+3. ✅ Has rent deposit (lamports > 0)
+4. ✅ Not already reclaimed
+
+### Issues & Limitations
+
+#### 🚫 Why User Accounts Cannot Be Reclaimed
+
+```
+┌─────────────────────────────────────────────┐
+│  Solana's Account Ownership Rules:         │
+│                                             │
+│  • Only the OWNER can modify account data  │
+│  • Only the OWNER can close the account    │
+│  • When closed, rent goes to OWNER         │
+│                                             │
+│  This protects users from malicious actors│
+└─────────────────────────────────────────────┘
+```
+
+#### 📊 Real Data Examples (Devent)
+
+**Reclaim History (What we've successfully recovered):**
+```json
+{
+  "EK7SJwv8tjniFdZ1oXEKbLWqHccDNbH6kKmWpDLX1ftz": {
+    "address": "EK7SJwv8tjniFdZ1oXEKbLWqHccDNbH6kKmWpDLX1ftz",
+    "reclaimedAt": "2026-01-28T09:50:13.000Z",
+    "lamportsRecovered": 2039280,
+    "note": "Successfully closed account",
+    "tokenMint": "Fot5eZD5qnXZz7MDgfhZ1Y9iRTXJanJBfhbzYSpAtqVM",
+    "accountOwner": "C5q1jVNrKA8QQTgrEmLRQNVkJC6MfQ3khhPChzvc4jS8",
+    "category": "operator-owned",
+    "signature": "4qdzxPU3hJen6XzoPJNAEqyXvttJTEGHtEtKjFXNHXZ1CgSmXAmiLbQ6AZ5HNsiULW2PBkGusWxRhMbquqFVZUMt"
+  }
+}
+```
+
+**Tracked Accounts (What we monitor):**
+```json
+{
+  "2xevYbVBEK7QLRxZW4iDBKzR39mWenZwNaCgLzbqfKkn": {
+    "address": "2xevYbVBEK7QLRxZW4iDBKzR39mWenZwNaCgLzbqfKkn",
+    "discoveredAt": "2026-01-28T09:45:00.000Z",
+    "category": "operator-owned",
+    "reclaimable": true,
+    "metadata": {
+      "mint": "Fot5eZD5qnXZz7MDgfhZ1Y9iRTXJanJBfhbzYSpAtqVM",
+      "owner": "C5q1jVNrKA8QQTgrEmLRQNVkJC6MfQ3khhPChzvc4jS8",
+      "tokenBalance": 5231055000,
+      "lamports": 2039280,
+      "status": "active"
+    }
+  },
+  "5kzAPTptD5DJRbt4mnMYouAdfSBwcFs4pmC9pK9QbfVJ": {
+    "address": "5kzAPTptD5DJRbt4mnMYouAdfSBwcFs4pmC9pK9QbfVJ",
+    "discoveredAt": "2026-01-28T09:45:00.000Z",
+    "category": "user-owned",
+    "reclaimable": false,
+    "metadata": {
+      "mint": "Fot5eZD5qnXZz7MDgfhZ1Y9iRTXJanJBfhbzYSpAtqVM",
+      "owner": "7Ga1oAo68ArFhRsSBRoFc4j67M6riRnvZwXRFUmnATAD",
+      "tokenBalance": 1000000,
+      "lamports": 2039280,
+      "status": "active"
+    }
+  }
+}
+```
+
+#### 🔍 Key Insights
+
+**Operator-Owned Accounts (Reclaimable ✅)**
+- **Owner**: `C5q1jVNrKA8QQTgrEmLRQNVkJC6MfQ3khhPChzvc4jS8` (Kora operator)
+- **Can Reclaim**: YES - Operator has full authority
+- **Example**: `EK7SJw...LX1ftz` successfully reclaimed 0.002039280 SOL
+- **Status**: ✅ **RECOVERED** - Rent returned to operator treasury
+
+**User-Owned Accounts (Non-Reclaimable ❌)**
+- **Owner**: `7Ga1oAo68ArFhRsSBRoFc4j67M6riRnvZwXRFUmnATAD` (User wallet)
+- **Can Reclaim**: NO - Only user can close their own account
+- **Status**: 📊 **MONITORED** - Tracked for cost analysis only
+
+**This is the expected flow for Kora sponsorship:**
+- Kora pays rent for user convenience 
+- Users maintain control over their accounts
+- Bot recovers what's possible (operator accounts)
+- Bot tracks what's not recoverable (user accounts)
+
+**This demonstrates the bot correctly handles both scenarios while respecting Solana's security model.**
+---

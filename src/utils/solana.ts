@@ -17,6 +17,10 @@ export async function getBalance(connection: Connection, pubkey: PublicKey) {
   return lamports / LAMPORTS_PER_SOL;
 }
 
+export function lamportsToSol(lamports: number): string {
+  return (lamports / 1_000_000_000).toFixed(9);
+}
+
 export async function closeTokenAccount(
   connection: Connection, 
   accountPubkey: PublicKey, 
@@ -67,6 +71,7 @@ export async function closeTokenAccount(
     };
 
   } catch (error: any) {
+    console.error("Error closing account:", error);
     return { 
       success: false, 
       message: `Failed to close account: ${error.message}` 

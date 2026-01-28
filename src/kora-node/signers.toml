@@ -1,0 +1,11 @@
+# Signers Configuration for Kora Node
+# This defines which keypairs Kora uses to sign transactions
+
+[signer_pool]
+# Selection strategy: round_robin, random, weighted
+strategy = "round_robin"
+
+[[signers]]
+name = "main"
+type = "memory"
+private_key_env = "KORA_OPERATOR_KEYPAIR"

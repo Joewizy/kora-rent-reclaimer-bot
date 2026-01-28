@@ -43,6 +43,13 @@ export async function runMonitorOnce() {
         // Account doesn't exist (already closed)
         logger.info(`❌ Account already closed: ${account.address}`);
         alreadyClosed++;
+        
+        // Update status in the database
+        account.metadata = {
+          ...account.metadata,
+          status: 'closed',
+          checkedAt: new Date().toISOString(),
+        };
         continue;
       }
 

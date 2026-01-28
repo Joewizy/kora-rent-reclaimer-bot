@@ -2,29 +2,8 @@ import logger from '../utils/logger';
 import { readJSON } from '../utils/database';
 import { TrackedAccount } from '../types';
 import config from '../config';
-
-interface RentAnalysis {
-  totalAccounts: number;
-  totalLamports: number;
-  operatorOwned: {
-    total: number;
-    totalLamports: number;
-    active: number;
-    activeLamports: number;
-    eligible: number;
-    eligibleLamports: number;
-    reclaimed: number;
-    reclaimedLamports: number;
-  };
-  userOwned: {
-    total: number;
-    totalLamports: number;
-    active: number;
-    activeLamports: number;
-    empty: number;
-    emptyLamports: number;
-  };
-}
+import { RentAnalysis } from '../types';
+import { lamportsToSol } from '../utils/solana';
 
 export function generateRentAnalysis(): RentAnalysis {
   const trackedAccounts = readJSON<Record<string, TrackedAccount>>(config.database.trackedAccountsPath) || {};
@@ -128,15 +107,5 @@ export function printRentAnalysisReport() {
   logger.info(`├── Non-Recoverable Rent: ${lamportsToSol(analysis.userOwned.totalLamports)} SOL (${nonRecoverable.toFixed(1)}%)`);
   logger.info(`└── Reason: User-owned ATAs created via transferTransaction`);
   
-  logger.info('');
-  logger.info('RECOMMENDATIONS:');
-  logger.info('✅ Run monitor daily to catch empty operator accounts');
-  logger.info('ℹ️  User-owned rent is expected in gasless transaction systems');
-  logger.info('📊 This report provides full visibility into rent costs');
-  
   return analysis;
-}
-
-export function lamportsToSol(lamports: number): string {
-  return (lamports / 1_000_000_000).toFixed(9);
 }
