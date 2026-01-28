@@ -32,6 +32,7 @@ npm run test:scanner    # Find accounts
 npm run test:monitor    # Check eligibility
 npm run test:reclaim    # Recover rent (dry-run by default)
 npm run test:report     # Generate report
+npm run test:kora-demo  # Run Kora full demo (requires Kora node)
 ```
 
 ## 📁 Architecture

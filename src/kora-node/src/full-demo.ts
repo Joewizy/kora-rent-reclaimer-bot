@@ -29,14 +29,14 @@ import { updateOrAppendSetComputeUnitLimitInstruction, updateOrAppendSetComputeU
 import dotenv from "dotenv";
 import path from "path";
 
-dotenv.config({ path: path.join(process.cwd(), "..", ".env") });
+dotenv.config({ path: path.join(process.cwd(), "..", "..", ".env") });
 
 const CONFIG = {
   computeUnitLimit: 200_000,
   computeUnitPrice: 1_000_000n as MicroLamports,
   transactionVersion: 0,
-  solanaRpcUrl: "http://127.0.0.1:8899",
-  solanaWsUrl: "ws://127.0.0.1:8900",
+  solanaRpcUrl: "http://api.devnet.solana.com",
+  solanaWsUrl: "wss://api.devnet.solana.com",
   koraRpcUrl: "http://localhost:8080/",
 };
 
